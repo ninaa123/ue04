@@ -48,6 +48,11 @@ void usage(char* argv[]) {
     exit(EXIT_FAILURE);
 }
 
+int randoffset(double prob)
+{
+    return (double)rand_r()>prob*RAND_MAX ? 1 : 0;
+}
+
 /*##############################################################################
 # MAIN PROGRAM
 ##############################################################################*/
@@ -109,20 +114,29 @@ int main( int argc, char *argv[] ) {
         for(i=0; i<threadReps; ++i) {
             tmpwalk = 0;
             for(j=0; j<boxcount-1; ++j)
-                tmpwalk += (double)rand()>prob*RAND_MAX ? 1 : 0;
+                tmpwalk += randoffset(prob);
             ++box[tmpwalk];
         }
     }
 
 
     /*#################### OUTPUT #######################*/
+    
+    FILE *f;
+     
+    f=fopen ("data.txt", "w");
+    
     time = getTimeStamp()-time;
     printf(
         "runtime %g\n" "iterations %g\n"   "boxes %g\n"  "probability %g\n\n\n",
              time,    (double)iterations, (double)boxcount,  (double)prob
     );
+    
+    fprintf(f,"%g %u\n\n\n",time, threadID);
+        
     if( nooutput == 0 ) for( k=0; k<boxcount; ++k) printf("%u\n", box[k]);
 
+    fclose(f);
 
     /*################## CLEAN UP ######################*/
     free(box);

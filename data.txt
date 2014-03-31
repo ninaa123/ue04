@@ -1,0 +1,60 @@
+runtime 0.00203204
+iterations 10000
+boxes 20
+probability 0.5
+
+
+runtime 0.00164485
+iterations 10000
+boxes 20
+probability 0.5
+
+
+runtime 0.00160718
+iterations 10000
+boxes 20
+probability 0.5
+
+
+runtime 0.00158
+iterations 10000
+boxes 20
+probability 0.5
+
+
+runtime 0.0016439
+iterations 10000
+boxes 20
+probability 0.5
+
+
+runtime 0.00231004
+iterations 10000
+boxes 20
+probability 0.5
+
+
+runtime 0.00223804
+iterations 10000
+boxes 20
+probability 0.5
+
+
+runtime 0.00170493
+iterations 10000
+boxes 20
+probability 0.5
+
+
+runtime 0.00259495
+iterations 10000
+boxes 20
+probability 0.5
+
+
+runtime 0.00198102
+iterations 10000
+boxes 20
+probability 0.5
+
+
