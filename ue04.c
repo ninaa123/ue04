@@ -48,9 +48,9 @@ void usage(char* argv[]) {
     exit(EXIT_FAILURE);
 }
 
-int randoffset(double prob)
+int randoffset(double prob, unsigned int *seed)
 {
-    return (double)rand_r()>prob*RAND_MAX ? 1 : 0;
+    return (double)rand_r(seed)>prob*RAND_MAX ? 1 : 0;
 }
 
 /*##############################################################################
@@ -60,10 +60,10 @@ int randoffset(double prob)
 int main( int argc, char *argv[] ) {
     /*################ BORING STUFF ################*/
     /* declarations */
-    unsigned    k,                  // multi purpose iterator
+    unsigned    k, k2,              // multi purpose iterator
                 nooutput = 0,       // suppress output (1=yes)
                 boxcount,           // how many boxes there are
-                *box,               // array for number of events in each box
+                **box,              // array for number of events in each box
                 iterations,         // how many experiments to be made
                 threads,            // number of threads to use
                 max_threads;        // maximum number of threads availible
@@ -81,11 +81,21 @@ int main( int argc, char *argv[] ) {
     for( k=0; k<(unsigned)argc; ++k) if( argv[k][0] == 'n' ) nooutput = 1;
 
     /* preparations */
-    box = (unsigned*) calloc(boxcount, sizeof(*box));
-    if( box == NULL ) { fprintf(stderr, "Error: Allocation failed.\n"); exit(EXIT_FAILURE); }
+
     max_threads = (unsigned)omp_get_num_procs();
     threads = (threads > 0 && threads<=max_threads) ? threads : max_threads;
     omp_set_num_threads(threads);
+    
+    box = (unsigned**) calloc(threads,sizeof(unsigned int *));
+    if( box == NULL ) { fprintf(stderr, "Error: Allocation failed.\n"); exit(EXIT_FAILURE); }
+    
+    for(k=0;k<threads;++k)
+    {
+        box[k]=(unsigned int *)calloc(boxcount,sizeof(unsigned int));
+        if( box[k] == NULL ) { fprintf(stderr, "Error: Allocation failed.\n"); exit(EXIT_FAILURE); }
+    }
+    
+    time = getTimeStamp();
 
     /*################ PARALLEL PART ################*/
     #pragma omp parallel // Every thread will execute the following block
@@ -94,7 +104,9 @@ int main( int argc, char *argv[] ) {
         unsigned        i, j,           // Multi-purpose iterators
                         threadID,       // Number of this thread
                         threadReps,     // Repetitions this thread has to do
-                        tmpwalk;        // Position within the iteration
+                        tmpwalk,        // Position within the iteration
+                        seed;           //every thread has own seed  
+        unsigned int *b;
 
         /* preparations for each thread */
         threadID = omp_get_thread_num()+1;
@@ -104,41 +116,67 @@ int main( int argc, char *argv[] ) {
             "Thread %u of %u has to do %g iterations!\n",
               threadID,   threads,     (double)threadReps
         );
+        
+        b=box[threadID-1];
+        
+        seed = ((int)getTimeStamp())^threadID;
+/*
         #pragma omp single // Block executed only by first thread to reach it
         {
-            time = getTimeStamp();
-            srand((int)time^threadID);
+            //srand((int)time^threadID);
         }
+*/
 
         /*################ ACTUAL SIMULATION ################*/
         for(i=0; i<threadReps; ++i) {
             tmpwalk = 0;
             for(j=0; j<boxcount-1; ++j)
-                tmpwalk += randoffset(prob);
-            ++box[tmpwalk];
+            {
+                //seed = getTimeStamp(); 
+                tmpwalk += randoffset(prob, &seed);
+            }
+            //#pragma omp atomic
+            //++box[tmpwalk];
+            ++b[tmpwalk];
         }
     }
 
+    for(k=1;k<threads;++k)
+    {
+        for(k2=0;k2<boxcount;++k2)
+        {
+            box[0][k2]+=box[k][k2];
+        }
+    }
+    
+    time = getTimeStamp()-time;
 
     /*#################### OUTPUT #######################*/
     
     FILE *f;
+    char filename[128];
      
-    f=fopen ("data.txt", "w");
+    sprintf(filename, "rep%u_boxes%u.txt",iterations,boxcount);
+    f=fopen(filename,"a+");
     
-    time = getTimeStamp()-time;
+/*
     printf(
         "runtime %g\n" "iterations %g\n"   "boxes %g\n"  "probability %g\n\n\n",
              time,    (double)iterations, (double)boxcount,  (double)prob
     );
+*/
     
-    fprintf(f,"%g %u\n\n\n",time, threadID);
+    fprintf(f,"%u %g\n",threads,time);
         
-    if( nooutput == 0 ) for( k=0; k<boxcount; ++k) printf("%u\n", box[k]);
+    if( nooutput == 0 ) for( k=0; k<boxcount; ++k) printf("%u\n", box[0][k]);
 
     fclose(f);
 
     /*################## CLEAN UP ######################*/
+    for(k=0;k<threads;++k)
+    {
+        free(box[k]);
+    }
     free(box);
     return EXIT_SUCCESS;
 }

@@ -25,7 +25,9 @@
                    kind="IMPORTANT_FILES_FOLDER">
       <itemPath>Makefile</itemPath>
     </logicalFolder>
+    <itemPath>plotpng.sh</itemPath>
     <itemPath>run.sh</itemPath>
+    <itemPath>ue04.gp</itemPath>
   </logicalFolder>
   <projectmakefile>Makefile</projectmakefile>
   <confs>
@@ -38,9 +40,13 @@
       </toolsSet>
       <compileType>
       </compileType>
+      <item path="plotpng.sh" ex="false" tool="3" flavor2="0">
+      </item>
       <item path="run.sh" ex="false" tool="3" flavor2="0">
       </item>
       <item path="ue04.c" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="ue04.gp" ex="false" tool="3" flavor2="0">
       </item>
     </conf>
     <conf name="Release" type="1">
@@ -64,9 +70,13 @@
           <developmentMode>5</developmentMode>
         </asmTool>
       </compileType>
+      <item path="plotpng.sh" ex="false" tool="3" flavor2="0">
+      </item>
       <item path="run.sh" ex="false" tool="3" flavor2="0">
       </item>
       <item path="ue04.c" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="ue04.gp" ex="false" tool="3" flavor2="0">
       </item>
     </conf>
   </confs>
